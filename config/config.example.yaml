@@ -1,2 +1,5 @@
 token: 123:abc
 mongo: mongodb://localhost:27017/cat-vibes-bot
+spotify_client_id: abc123 # https://developer.spotify.com/dashboard/
+spotify_client_secret: abc123
+spotify_refresh_token: abc123

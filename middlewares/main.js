@@ -1,47 +1,13 @@
 const {Composer, Extra, Markup} = require('telegraf')
 const rateLimit = require('telegraf-ratelimit')
-const pLimit = require('p-limit')
-
-const fs = require('fs')
-const {spawn} = require('child_process')
+const axios = require('axios')
 
 const Caches = require('../models/caches')
 
-const {
-  hrt,
-  fmtPrc,
-} = require('../functions/timings')
+const {process} = require('../functions/main')
+const {getTrack} = require('../functions/spotify')
 
-const limit = pLimit(1)
-
-const bpmRegex = /(\d+)/
-
-const makeVideo = (bpm, outPath) => new Promise(async (resolve) => {
-  console.log(`${bpm}: starting ffmpeg`)
-  const ffmpegStart = hrt()
-
-  // let newFPS = bpm / 123 * 29.97
-  // if (newFPS <= 29.97) {
-  //   newFPS = 29.97
-  // } else {
-  //   newFPS = 29.97 * 2
-  // }
-
-  const newFPS = 29.97
-
-  const ls = spawn('ffmpeg', [
-    '-y',
-    '-i', 'cat.mp4',
-    '-filter:v', `setpts=${123 / bpm}*PTS`,
-    '-r', newFPS,
-    outPath,
-  ])
-
-  ls.once('close', (code) => {
-    console.log(`${bpm}: ffmpeg finished with code ${code} in ${fmtPrc(hrt(ffmpegStart))}ms`)
-    resolve()
-  })
-})
+const songLinkRegex = /^https:\/\/song\.link/i
 
 const filterBPM = async (ctx, next) => {
   const bpm = Number(ctx.match[1])
@@ -57,8 +23,53 @@ const filterBPM = async (ctx, next) => {
 
 const composer = new Composer()
 
+composer.on('message', async (ctx, next) => {
+  const entities = ctx.message.entities || ctx.message.caption_entities
+  if (!entities) {
+    return next()
+  }
+
+  const songLinkURL = (() => {
+    for (const entity of entities) {
+      if (entity.type === 'text_link') {
+        const match = entity.url.match(songLinkRegex)
+        if (match) return entity.url
+      }
+      if (entity.type === 'url') {
+        const text = ctx.message.text.substr(entity.offset, entity.length)
+        const match = text.match(songLinkRegex)
+        if (match) return text
+      }
+    }
+    return false
+  })()
+  if (!songLinkURL) {
+    return next()
+  }
+  await ctx.reply('Found! Getting BPM')
+  console.log(`Found song.link: ${songLinkURL}`)
+
+  axios.get(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(songLinkURL)}&platform=spotify`)
+    .catch((e) => {
+      console.error(e)
+      return ctx.reply('Error getting BPM :( [song.link]')
+    })
+    .then(({data}) => {
+      const spotifyData = data.entitiesByUniqueId[data.entityUniqueId]
+      const spotifyId = spotifyData.id
+      console.log(`got spotify id: ${spotifyId}`)
+      return spotifyId
+    })
+    .then((spotifyId) => getTrack(spotifyId))
+    .catch((e) => {
+      console.error(e)
+      return ctx.reply('Error getting BPM :( [spotify]')
+    })
+    .then((result) => process(ctx, result.track.tempo))
+})
+composer.on('audio', (ctx) => ctx.reply('Only songs with song.link are supported. Use @nowplaybot or similar'))
 composer.hears(
-  bpmRegex,
+  /(\d+)/,
   filterBPM,
   async (ctx, next) => {
     const {bpm} = ctx.state
@@ -80,47 +91,14 @@ composer.hears(
       return ctx.reply(`Not so fast!`)
     },
   }),
-  async (ctx) => {
-    const {bpm} = ctx.state
-    const tmpPath = `${bpm}_${Date.now()}.mp4`
-
-    await ctx.reply(`Generating ${bpm} BPM...\nPlease wait for a few seconds!`).catch(console.warn)
-
-    limit(async () => {
-      const cache = await Caches.findOne({bpm})
-      if (cache) {
-        console.log(`re-check: ${bpm}: cache found`)
-        return ctx.telegram.sendAnimation(
-          ctx.from.id,
-          cache.file_id,
-          Extra.markup(Markup.inlineKeyboard([[Markup.switchToChatButton('Share', bpm.toString())]])),
-        )
-      }
-
-      await makeVideo(bpm, tmpPath)
-
-      if (!fs.existsSync(tmpPath)) {
-        return ctx.reply('Error???')
-      }
-
-      return ctx.telegram.sendAnimation(
-        ctx.from.id,
-        {source: fs.createReadStream(tmpPath)},
-        Extra.markup(Markup.inlineKeyboard([[Markup.switchToChatButton('Share', bpm.toString())]])),
-      )
-        .then((message) => {
-          try {fs.unlinkSync(tmpPath)} catch (e) {}
-          return Caches.findOneAndUpdate({bpm}, {bpm, file_id: message.animation.file_id}, {upsert: true})
-        })
-    })
-  },
+  (ctx) => process(ctx, ctx.state.bpm),
 )
 composer.on('inline_query', async (ctx) => {
   const {query} = ctx.inlineQuery
 
-  const match = query.match(bpmRegex)
+  const match = query.match(/(\d+(?:\.\d+)?)/)
   if (match) {
-    const bpm = Number(match[1])
+    const bpm = parseFloat(match[1])
     if (bpm > 600) {
       return ctx.answerInlineQuery([], {
         cache_time: 0,
@@ -149,8 +127,8 @@ composer.on('inline_query', async (ctx) => {
     console.log(`inline: ${bpm}: cache not found`)
     return ctx.answerInlineQuery([], {
       cache_time: 0,
-      switch_pm_text: 'There is no cached gif for that BPM. Click here to generate one',
-      switch_pm_parameter: bpm.toString(),
+      switch_pm_text: `There is no cached gif for ${Math.round(bpm)} BPM. Click here to generate one`,
+      switch_pm_parameter: Math.round(bpm).toString(),
     })
   }
 
