@@ -58,14 +58,19 @@ composer.on('message', async (ctx, next) => {
       const spotifyData = data.entitiesByUniqueId[data.entityUniqueId]
       const spotifyId = spotifyData.id
       console.log(`got spotify id: ${spotifyId}`)
-      return spotifyId
+      return getTrack(spotifyId)
     })
-    .then((spotifyId) => getTrack(spotifyId))
     .catch((e) => {
-      console.error(e)
+      console.error(e.data.error)
       return ctx.reply('Error getting BPM :( [spotify]')
     })
-    .then((result) => process(ctx, result.track.tempo))
+    .then((result) => {
+      console.log(result)
+      if (!result || !result.track || !result.track.tempo) {
+        return ctx.reply('Error getting BPM :( [spotify]')
+      }
+      return process(ctx, result.track.tempo)
+    })
 })
 composer.on('audio', (ctx) => ctx.reply('Only songs with song.link are supported. Use @nowplaybot or similar'))
 composer.hears(
