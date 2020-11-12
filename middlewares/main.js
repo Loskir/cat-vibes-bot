@@ -80,7 +80,9 @@ composer.on('message', async (ctx, next) => {
     console.warn(spotifyResult)
     return ctx.reply('Error getting BPM :( [spotify]')
   }
-  return process(ctx, spotifyResult.track.tempo)
+  const bpm = spotifyResult.track.tempo
+  await ctx.reply(`Done! ${bpm} BPM`)
+  return process(ctx, bpm)
 })
 composer.on('audio', (ctx) => ctx.reply('Only songs with song.link are supported. Use @nowplaybot or similar'))
 composer.hears(
