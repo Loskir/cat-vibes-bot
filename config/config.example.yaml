@@ -1,0 +1,2 @@
+token: 123:abc
+mongo: mongodb://localhost:27017/cat-vibes-bot

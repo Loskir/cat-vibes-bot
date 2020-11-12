@@ -1,0 +1,13 @@
+{
+  "name": "cat-vibes-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "js-yaml": "^3.14.0",
+    "mongoose": "^5.10.13",
+    "p-limit": "^3.0.2",
+    "telegraf": "^3.38.0",
+    "telegraf-ratelimit": "^2.0.0"
+  }
+}
