@@ -4,7 +4,7 @@ const composer = new Composer()
 
 let cachedGifFileId = 'CgACAgIAAxkDAAMrX6Zf-FXqaeBHxDRujsV5pTsunFwAAggHAALOGDFJW5soh67QEKkeBA'
 
-composer.use((ctx) => {
+composer.start((ctx) => {
   const caption = `Send me the BPM of a track and I'll make this cat vibe at your frequency!
     
 By @Loskir
