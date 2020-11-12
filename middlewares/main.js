@@ -64,7 +64,7 @@ composer.on('message', async (ctx, next) => {
     console.log(`got spotify id: ${spotifyId}`)
     spotifyResult = await getTrack(spotifyId)
   } catch (e) {
-    console.error(e && e.data && e.data.error)
+    console.warn(e)
     return ctx.reply('Error getting BPM :( [spotify]')
   }
 
