@@ -10,6 +10,7 @@ void (async () => {
   const bot = new Telegraf(token)
 
   bot.use(
+    require('./passThruMiddlewares/user'),
     require('./middlewares/main'),
     require('./middlewares/start'),
   )
