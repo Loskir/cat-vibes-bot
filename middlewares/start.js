@@ -8,8 +8,9 @@ composer.use((ctx) => {
   const caption = `Send me the BPM of a track and I'll make this cat vibe at your frequency!
     
 By @Loskir
-My channel – @Loskirs`
-  const extra = {caption}
+My channel – @Loskirs
+Bot sources — [github.com/Loskir/cat-vibes-bot](https://github.com/Loskir/cat-vibes-bot) 😉`
+  const extra = {caption, parse_mode: 'HTML'}
   return ctx.telegram.sendAnimation(ctx.from.id, cachedGifFileId, extra)
     .catch(() => {
       console.warn(`failed to send gif`)
