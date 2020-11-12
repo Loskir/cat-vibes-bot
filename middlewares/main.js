@@ -86,7 +86,7 @@ composer.on('message', async (ctx, next) => {
 })
 composer.on('audio', (ctx) => ctx.reply('Only songs with song.link are supported. Use @nowplaybot or similar'))
 composer.hears(
-  /(\d+)/,
+  /^(\d+)$/,
   filterBPM,
   (ctx) => process(ctx, ctx.state.bpm),
 )
