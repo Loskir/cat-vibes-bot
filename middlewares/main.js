@@ -65,8 +65,8 @@ composer.on('message', async (ctx, next) => {
       return ctx.reply('Error getting BPM :( [spotify]')
     })
     .then((result) => {
-      console.log(result)
       if (!result || !result.track || !result.track.tempo) {
+        console.warn(result)
         return ctx.reply('Error getting BPM :( [spotify]')
       }
       return process(ctx, result.track.tempo)
