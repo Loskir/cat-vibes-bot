@@ -5,7 +5,12 @@ const composer = new Composer()
 let cachedGifFileId = 'CgACAgIAAxkDAAMrX6Zf-FXqaeBHxDRujsV5pTsunFwAAggHAALOGDFJW5soh67QEKkeBA'
 
 composer.start((ctx) => {
-  const caption = `Send me the BPM of a track and I'll make this cat vibe at your frequency!
+  const caption = `I'll make this cat vibe at your frequency!
+
+Supported:
+– BPM (number)
+– song.link link
+– track via @nowplaybot
     
 By @Loskir
 My channel – @Loskirs
