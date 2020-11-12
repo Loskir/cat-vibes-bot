@@ -41,6 +41,16 @@ const makeVideo = (bpm, outPath) => new Promise(async (resolve) => {
 })
 
 const process = async (ctx, bpm) => {
+  const cache = await Caches.findOne({bpm})
+  if (cache) {
+    console.log(`${bpm}: sent from cache`)
+    return ctx.telegram.sendAnimation(
+      ctx.from.id,
+      cache.file_id,
+      Extra.markup(Markup.inlineKeyboard([[Markup.switchToChatButton('Share', bpm.toString())]])),
+    )
+  }
+
   const tmpPath = `${bpm}_${Date.now()}.mp4`
 
   await ctx.reply(`Generating ${bpm} BPM...\nPlease wait for a few seconds!`).catch(console.warn)

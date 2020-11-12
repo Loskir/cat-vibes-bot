@@ -76,26 +76,6 @@ composer.on('audio', (ctx) => ctx.reply('Only songs with song.link are supported
 composer.hears(
   /(\d+)/,
   filterBPM,
-  async (ctx, next) => {
-    const {bpm} = ctx.state
-    const cache = await Caches.findOne({bpm})
-    if (cache) {
-      console.log(`${bpm}: sent from cache`)
-      return ctx.telegram.sendAnimation(
-        ctx.from.id,
-        cache.file_id,
-        Extra.markup(Markup.inlineKeyboard([[Markup.switchToChatButton('Share', bpm.toString())]])),
-      )
-    }
-    return next()
-  },
-  rateLimit({
-    window: 5000,
-    limit: 1,
-    onLimitExceeded: (ctx) => {
-      return ctx.reply(`Not so fast!`)
-    },
-  }),
   (ctx) => process(ctx, ctx.state.bpm),
 )
 composer.on('inline_query', async (ctx) => {
