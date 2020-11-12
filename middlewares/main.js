@@ -49,28 +49,30 @@ composer.on('message', async (ctx, next) => {
   await ctx.reply('Found! Getting BPM')
   console.log(`Found song.link: ${songLinkURL}`)
 
-  axios.get(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(songLinkURL)}&platform=spotify`)
-    .catch((e) => {
-      console.error(e)
-      return ctx.reply('Error getting BPM :( [song.link]')
-    })
-    .then(({data}) => {
-      const spotifyData = data.entitiesByUniqueId[data.entityUniqueId]
-      const spotifyId = spotifyData.id
-      console.log(`got spotify id: ${spotifyId}`)
-      return getTrack(spotifyId)
-    })
-    .catch((e) => {
-      console.error(e && e.data && e.data.error)
-      return ctx.reply('Error getting BPM :( [spotify]')
-    })
-    .then((result) => {
-      if (!result || !result.track || !result.track.tempo) {
-        console.warn(result)
-        return ctx.reply('Error getting BPM :( [spotify]')
-      }
-      return process(ctx, result.track.tempo)
-    })
+  let songLinkResult
+  try {
+    songLinkResult = await axios.get(`https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(songLinkURL)}&platform=spotify`)
+  } catch(e) {
+    console.error(e)
+    return ctx.reply('Error getting BPM :( [song.link]')
+  }
+  let spotifyResult
+  try {
+    const {data} = songLinkResult
+    const spotifyData = data.entitiesByUniqueId[data.entityUniqueId]
+    const spotifyId = spotifyData.id
+    console.log(`got spotify id: ${spotifyId}`)
+    spotifyResult = await getTrack(spotifyId)
+  } catch (e) {
+    console.error(e && e.data && e.data.error)
+    return ctx.reply('Error getting BPM :( [spotify]')
+  }
+
+  if (!spotifyResult || !spotifyResult.track || !spotifyResult.track.tempo) {
+    console.warn(spotifyResult)
+    return ctx.reply('Error getting BPM :( [spotify]')
+  }
+  return process(ctx, spotifyResult.track.tempo)
 })
 composer.on('audio', (ctx) => ctx.reply('Only songs with song.link are supported. Use @nowplaybot or similar'))
 composer.hears(
