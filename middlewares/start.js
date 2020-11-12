@@ -9,7 +9,7 @@ composer.use((ctx) => {
     
 By @Loskir
 My channel – @Loskirs
-Bot sources — [github.com/Loskir/cat-vibes-bot](https://github.com/Loskir/cat-vibes-bot) 😉`
+Bot sources — <a href="https://github.com/Loskir/cat-vibes-bot">github.com/Loskir/cat-vibes-bot</a> 😉`
   const extra = {caption, parse_mode: 'HTML'}
   return ctx.telegram.sendAnimation(ctx.from.id, cachedGifFileId, extra)
     .catch(() => {
