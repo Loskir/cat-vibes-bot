@@ -61,7 +61,7 @@ composer.on('message', async (ctx, next) => {
       return getTrack(spotifyId)
     })
     .catch((e) => {
-      console.error(e.data.error)
+      console.error(e && e.data && e.data.error)
       return ctx.reply('Error getting BPM :( [spotify]')
     })
     .then((result) => {
