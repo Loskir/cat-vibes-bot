@@ -59,7 +59,15 @@ composer.on('message', async (ctx, next) => {
   let spotifyResult
   try {
     const {data} = songLinkResult
-    const spotifyData = data.entitiesByUniqueId[data.entityUniqueId]
+    if (!data.entitiesByUniqueId
+      || !data.linksByPlatform
+      || !data.linksByPlatform.spotify
+      || !data.linksByPlatform.spotify.entityUniqueId
+      || !data.entitiesByUniqueId[data.linksByPlatform.spotify.entityUniqueId]) {
+      return ctx.reply('Track is not found in Spotify so I\'m unable to process it. Please try another one')
+    }
+
+    const spotifyData = data.entitiesByUniqueId[data.linksByPlatform.spotify.entityUniqueId]
     const spotifyId = spotifyData.id
     console.log(`got spotify id: ${spotifyId}`)
     spotifyResult = await getTrack(spotifyId)
