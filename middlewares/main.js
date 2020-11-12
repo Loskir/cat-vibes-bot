@@ -46,10 +46,10 @@ const makeVideo = (bpm, outPath) => new Promise(async (resolve) => {
 const filterBPM = async (ctx, next) => {
   const bpm = Number(ctx.match[1])
   if (bpm > 600) {
-    return ctx.reply('BPM is too big. 10 ≤ BPM ≤ 600')
+    return ctx.reply('BPM is too big. 60 ≤ BPM ≤ 600')
   }
-  if (bpm < 10) {
-    return ctx.reply('BPM is too small. 10 ≤ BPM ≤ 600')
+  if (bpm < 60) {
+    return ctx.reply('BPM is too small. 60 ≤ BPM ≤ 600')
   }
   ctx.state.bpm = bpm
   return next()
@@ -124,14 +124,14 @@ composer.on('inline_query', async (ctx) => {
     if (bpm > 600) {
       return ctx.answerInlineQuery([], {
         cache_time: 0,
-        switch_pm_text: 'BPM is too big. 10 ≤ BPM ≤ 600',
+        switch_pm_text: 'BPM is too big. 60 ≤ BPM ≤ 600',
         switch_pm_parameter: 'a',
       })
     }
-    if (bpm < 10) {
+    if (bpm < 60) {
       return ctx.answerInlineQuery([], {
         cache_time: 0,
-        switch_pm_text: 'BPM is too small. 10 ≤ BPM ≤ 600',
+        switch_pm_text: 'BPM is too small. 60 ≤ BPM ≤ 600',
         switch_pm_parameter: 'a',
       })
     }
@@ -154,7 +154,7 @@ composer.on('inline_query', async (ctx) => {
     })
   }
 
-  return ctx.answerInlineQuery([], {switch_pm_text: 'Type the BPM (10 ≤ BPM ≤ 600)', switch_pm_parameter: 'a'})
+  return ctx.answerInlineQuery([], {switch_pm_text: 'Type the BPM (60 ≤ BPM ≤ 600)', switch_pm_parameter: 'a'})
 })
 
 module.exports = composer
